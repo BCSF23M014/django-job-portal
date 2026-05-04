@@ -1,8 +1,6 @@
 name: Django Codacy Coverage
 
-on:
-  push:
-    branches: [ "master" ]
+on: [push]
 
 jobs:
   build:
@@ -17,16 +15,19 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
+      - name: Install Tools
         run: |
-          pip install -r requirements.txt
-          pip install pytest-cov coverage  # Extra tools for reporting
+          pip install django coverage pytest-cov
 
-      - name: Run Tests and Generate Coverage
+      - name: Run Tests and Generate XML
         run: |
-          # Django tests run karein aur XML report banayein
+          # 1. Tests run karein
           coverage run manage.py test
-          coverage xml -o coverage.xml
+          # 2. Report ko XML format mein convert karein (Codacy ke liye zaroori hai)
+          coverage xml
+
+      - name: Check if File Exists (Debug)
+        run: ls -R  # Ye command logs mein dikhayegi ke coverage.xml kahan bani hai
 
       - name: Run Codacy Coverage Reporter
         uses: codacy/codacy-coverage-reporter-action@v1
