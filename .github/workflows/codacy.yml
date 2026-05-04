@@ -1,0 +1,35 @@
+name: Django Codacy Coverage
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest-cov coverage  # Extra tools for reporting
+
+      - name: Run Tests and Generate Coverage
+        run: |
+          # Django tests run karein aur XML report banayein
+          coverage run manage.py test
+          coverage xml -o coverage.xml
+
+      - name: Run Codacy Coverage Reporter
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.xml
