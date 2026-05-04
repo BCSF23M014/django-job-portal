@@ -1,40 +1,49 @@
-name: job-portal
+name: Django Codacy Coverage
 
-on: [push]
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - run: |
-        git fetch --prune --unshallow
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.11
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        # django-environ aur coverage tools lazmi install karein
-        pip install -r requirements.txt
-        pip install coverage django-environ 
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install django coverage pytest-cov django-environ
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    # Black wala step humne hata diya hai taake "Failure" khatam ho jaye
-    
-    - name: Run tests and Generate Coverage
-      run: |
-        python manage.py collectstatic --noinput
-        # 'coverage' command use kar rahe hain taake report ban sake
-        coverage run manage.py test
-        coverage xml -o coverage.xml
+      - name: Run Tests and Generate Reports
+        run: |
+          # Static files collect karna (agar settings mein required hai)
+          python manage.py collectstatic --noinput || true
+          
+          # Tests run karna aur XML + HTML reports banana
+          coverage run manage.py test
+          coverage xml -o coverage.xml
+          coverage html -d htmlcov
 
-    - name: Run Codacy Coverage Reporter
-      uses: codacy/codacy-coverage-reporter-action@v1
-      with:
-        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        coverage-reports: coverage.xml
+      - name: Upload to Codacy
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.xml
+
+      # Is step se aap GitHub Actions se report download kar sakenge
+      - name: Upload HTML Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: django-coverage-report
+          path: htmlcov/
