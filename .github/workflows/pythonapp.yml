@@ -1,4 +1,4 @@
-name: Django Codacy Coverage
+name: Django Codacy Coverage  
 
 on:
   push:
