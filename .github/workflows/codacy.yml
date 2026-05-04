@@ -2,9 +2,9 @@ name: Django Codacy Coverage
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
 
 jobs:
   build:
@@ -28,6 +28,7 @@ jobs:
       - name: Run Tests and Generate XML
         run: |
           # Django tests run karke report generate karna
+          # Agar environment variables ka error aaye to yahan 'export' commands add ki ja sakti hain
           coverage run manage.py test
           coverage xml
 
